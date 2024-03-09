@@ -16,6 +16,7 @@ pygame.display.set_caption("Flappy Bird")
 ground_scroll = 0
 scroll_speed = 4
 flying = False
+game_over = False
 
 # load images
 bg = pygame.image.load('img/bg.png')
@@ -45,24 +46,26 @@ class Bird(pygame.sprite.Sprite):
             if self.rect.bottom < 768:
                 self.rect.y = self.rect.y + int(self.vel)
 
-        if pygame.mouse.get_pressed()[0] == 1 and not self.clicked:
-            self.clicked = True
-            self.vel = -10
-        if pygame.mouse.get_pressed()[0] == 0:
-            self.clicked = False
+        if not game_over:
+            if pygame.mouse.get_pressed()[0] == 1 and not self.clicked  :
+                self.clicked = True
+                self.vel = -10
+            if pygame.mouse.get_pressed()[0] == 0:
+                self.clicked = False
 
-        self.counter = self.counter + 1
-        flap_cooldown = 5
+            self.counter = self.counter + 1
+            flap_cooldown = 5
 
-        if self.counter > flap_cooldown:
-            self.counter = 0
-            self.index = self.index + 1
-            if self.index >= len(self.images):
-                self.index = 0
-        self.image = self.images[self.index]
+            if self.counter > flap_cooldown:
+                self.counter = 0
+                self.index = self.index + 1
+                if self.index >= len(self.images):
+                    self.index = 0
+            self.image = self.images[self.index]
 
-        self.image = pygame.transform.rotate(self.images[self.index], self.vel*-2)
-
+            self.image = pygame.transform.rotate(self.images[self.index], self.vel*-2)
+        else:
+            self.image = pygame.transform.rotate(self.images[self.index], -90)
 bird_group = pygame.sprite.Group()
 flappy = Bird(100, int(screen_height / 2))
 bird_group.add(flappy)
@@ -77,9 +80,16 @@ while run:
     bird_group.update()
 
     screen.blit(ground_img, (ground_scroll, bg.get_height()))
-    ground_scroll = ground_scroll - scroll_speed
-    if abs(ground_scroll) > 35:
-        ground_scroll = 0
+
+    if flappy.rect.bottom > 768:
+        game_over = True
+        flying = False
+
+    if not game_over:
+        screen.blit(ground_img, (ground_scroll, bg.get_height()))
+        ground_scroll = ground_scroll - scroll_speed
+        if abs(ground_scroll) > 35:
+            ground_scroll = 0
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
